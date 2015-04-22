@@ -4,7 +4,18 @@
  * and open the template in the editor.
  */
 package com.mycompany.movie.television.java.grapher;
+import com.omertron.themoviedbapi.MovieDbException;
 import com.omertron.themoviedbapi.TheMovieDbApi;
+import com.omertron.themoviedbapi;
+import com.omertron.themoviedbapi.enumeration.MediaType;
+import com.omertron.themoviedbapi.enumeration.SearchType;
+import com.omertron.themoviedbapi.model.discover.Discover;
+import com.omertron.themoviedbapi.model.media.MediaBasic;
+import com.omertron.themoviedbapi.model.movie.MovieBasic;
+import com.omertron.themoviedbapi.results.ResultList;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *
@@ -12,12 +23,39 @@ import com.omertron.themoviedbapi.TheMovieDbApi;
  */
 public class Grapher extends javax.swing.JFrame {
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
-
+    private TheMovieDbApi TMDb = null;
+    private static final Logger LOG = LoggerFactory.getLogger(Grapher.class);
+    private String queryString = "The Pink Panther";
     /**
      * Creates new form Grapher
      */
     public Grapher() {
         initComponents();
+        
+        //init connection to TheMovieDbApi
+        try {
+            TMDb = new TheMovieDbApi(APIKey);
+        } catch (MovieDbException ex) {
+            LOG.warn("Failed to initialise TheMovieDB API: {}", ex.getMessage());
+            return;
+        }
+        
+        // Query Search Term
+        ResultList<MediaBasic> resultsList = TMDb.searchMulti(queryString, 1, "English", false);
+        // Get a list of media results
+        List<MediaBasic> mediaList = resultsList.getResults();
+        // Check to make sure there are results media result;
+        if (mediaList.isEmpty()) {
+            return;
+        }
+        
+        MediaBasic mediaResult = mediaList.get(0);
+        MediaType mediaType = mediaResult.getMediaType();
+        if (mediaType == MediaType.MOVIE || mediaType == MediaType.TV) {
+            int movieID = mediaResult.getId();
+        } else { // not a relevant result
+            return;
+        }
     }
 
     /**
