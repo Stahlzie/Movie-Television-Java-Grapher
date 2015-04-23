@@ -9,11 +9,20 @@ import com.omertron.themoviedbapi.TheMovieDbApi;
 import com.omertron.themoviedbapi;
 import com.omertron.themoviedbapi.enumeration.MediaType;
 import com.omertron.themoviedbapi.enumeration.SearchType;
+import com.omertron.themoviedbapi.model.credits.CreditMovieBasic;
+import com.omertron.themoviedbapi.model.credits.MediaCreditCast;
 import com.omertron.themoviedbapi.model.discover.Discover;
 import com.omertron.themoviedbapi.model.media.MediaBasic;
+import com.omertron.themoviedbapi.model.media.MediaCreditList;
 import com.omertron.themoviedbapi.model.movie.MovieBasic;
+import com.omertron.themoviedbapi.model.person.PersonCreditList;
+import com.omertron.themoviedbapi.model.person.PersonInfo;
 import com.omertron.themoviedbapi.results.ResultList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +35,8 @@ public class Grapher extends javax.swing.JFrame {
     private TheMovieDbApi TMDb = null;
     private static final Logger LOG = LoggerFactory.getLogger(Grapher.class);
     private String queryString = "The Pink Panther";
+    
+    private Map<String, List<String>> actorMovieDictionary = new HashMap<>();
     /**
      * Creates new form Grapher
      */
@@ -49,12 +60,42 @@ public class Grapher extends javax.swing.JFrame {
             return;
         }
         
-        MediaBasic mediaResult = mediaList.get(0);
-        MediaType mediaType = mediaResult.getMediaType();
-        if (mediaType == MediaType.MOVIE || mediaType == MediaType.TV) {
-            int movieID = mediaResult.getId();
-        } else { // not a relevant result
+        // Create a MediaBasic to hold result
+        MediaBasic mediaResult = new MediaBasic(); 
+        
+        //find first movie in list
+        Iterator<MediaBasic> mediaIterator = mediaList.iterator();
+        boolean firstResultNotFound = true;
+	while (mediaIterator.hasNext() && firstResultNotFound) {
+            mediaResult = mediaIterator.next();
+            if (mediaResult.getMediaType() == MediaType.MOVIE) {
+                firstResultNotFound = false;
+            }
+	}
+        
+        if (firstResultNotFound) { //No Movies Returned
             return;
+        }
+        
+        //Attempt to get movie credita
+        int mediaId = mediaResult.getId();
+        MediaCreditList movieCredits = new MediaCreditList();
+        try {
+            movieCredits = TMDb.getMovieCredits(mediaId);
+        } catch (MovieDbException ex) {
+            LOG.warn("Failed to get Movie credits: {}", ex.getMessage());
+        }            
+        
+        List<MediaCreditCast> movieCast = movieCredits.getCast();
+        Iterator<MediaCreditCast> i = movieCast.iterator();
+        while(i.hasNext()) {
+            MediaCreditCast castMember = i.next();
+            String castMemberName = castMember.getName();
+            int castMemberId = castMember.getCastId();
+            PersonCreditList<CreditMovieBasic> castMemberMovieCredits = TMDb.getPersonMovieCredits(castMemberId, "English");
+            List<CreditMovieBasic> castMemberMovieList = castMemberMovieCredits.getCast();
+            //castMemberMovieList.get(0).getTitle;
+            
         }
     }
 
