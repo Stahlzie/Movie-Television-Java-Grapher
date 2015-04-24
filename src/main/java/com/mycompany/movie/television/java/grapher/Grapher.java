@@ -4,9 +4,9 @@
  * and open the template in the editor.
  */
 package com.mycompany.movie.television.java.grapher;
+
 import com.omertron.themoviedbapi.MovieDbException;
 import com.omertron.themoviedbapi.TheMovieDbApi;
-import com.omertron.themoviedbapi;
 import com.omertron.themoviedbapi.enumeration.MediaType;
 import com.omertron.themoviedbapi.enumeration.SearchType;
 import com.omertron.themoviedbapi.model.credits.CreditMovieBasic;
@@ -18,84 +18,121 @@ import com.omertron.themoviedbapi.model.movie.MovieBasic;
 import com.omertron.themoviedbapi.model.person.PersonCreditList;
 import com.omertron.themoviedbapi.model.person.PersonInfo;
 import com.omertron.themoviedbapi.results.ResultList;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  *
  * @author STAHLZD1
  */
 public class Grapher extends javax.swing.JFrame {
+
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
     private TheMovieDbApi TMDb = null;
-    private static final Logger LOG = LoggerFactory.getLogger(Grapher.class);
     private String queryString = "The Pink Panther";
-    
-    private Map<String, List<String>> actorMovieDictionary = new HashMap<>();
+    private Map<CreditMovieBasic, Set<MediaCreditCast>> movieToActorListMap = new HashMap<CreditMovieBasic, Set<MediaCreditCast>>();
+
     /**
      * Creates new form Grapher
      */
     public Grapher() {
         initComponents();
-        
-        //init connection to TheMovieDbApi
         try {
+            //init connection to TheMovieDbApi
             TMDb = new TheMovieDbApi(APIKey);
-        } catch (MovieDbException ex) {
-            LOG.warn("Failed to initialise TheMovieDB API: {}", ex.getMessage());
-            return;
-        }
-        
-        // Query Search Term
-        ResultList<MediaBasic> resultsList = TMDb.searchMulti(queryString, 1, "English", false);
-        // Get a list of media results
-        List<MediaBasic> mediaList = resultsList.getResults();
-        // Check to make sure there are results media result;
-        if (mediaList.isEmpty()) {
-            return;
-        }
-        
-        // Create a MediaBasic to hold result
-        MediaBasic mediaResult = new MediaBasic(); 
-        
-        //find first movie in list
-        Iterator<MediaBasic> mediaIterator = mediaList.iterator();
-        boolean firstResultNotFound = true;
-	while (mediaIterator.hasNext() && firstResultNotFound) {
-            mediaResult = mediaIterator.next();
-            if (mediaResult.getMediaType() == MediaType.MOVIE) {
-                firstResultNotFound = false;
+            System.out.println("Connected to TMDb");
+
+            // Query Search Term
+            ResultList<MediaBasic> resultsList = null;
+            resultsList = TMDb.searchMulti(queryString, 1, "en", false);
+            System.out.println("Search Completed: " + queryString);
+
+            // Check to make sure there are results media result;
+            if (resultsList.isEmpty()) {
+                System.out.println("No results for: " + queryString);
+                return;
             }
-	}
-        
-        if (firstResultNotFound) { //No Movies Returned
-            return;
-        }
-        
-        //Attempt to get movie credita
-        int mediaId = mediaResult.getId();
-        MediaCreditList movieCredits = new MediaCreditList();
-        try {
-            movieCredits = TMDb.getMovieCredits(mediaId);
+
+            // Get a list of media results
+            List<MediaBasic> mediaList = resultsList.getResults();
+            // Create a MediaBasic to hold result
+            MediaBasic mediaResult = new MediaBasic();
+            System.out.println("Media Results into List");
+
+            //find first movie in list
+            Iterator<MediaBasic> mediaIterator = mediaList.iterator();
+            boolean firstResultNotFound = true;
+            while (mediaIterator.hasNext() && firstResultNotFound) {
+                mediaResult = mediaIterator.next();
+                if (mediaResult.getMediaType() == MediaType.MOVIE) {
+                    firstResultNotFound = false;
+                }
+            }
+
+            if (firstResultNotFound) { //No Movies Returned
+                System.out.println("No Movies found in results for: " + queryString);
+                return;
+            }
+            System.out.println("Initial Movie Media Result Found: " + mediaResult.toString());
+            //Attempt to get movie credita
+            int mediaId = mediaResult.getId();
+            MediaCreditList movieCredits = TMDb.getMovieCredits(mediaId);
+            System.out.println("Initial Movie Credits Retrieved");
+
+            //Get cast of movie
+            List<MediaCreditCast> movieCast = movieCredits.getCast();
+            System.out.println("Initial Movie Cast converted to List");
+
+            //Iterate through cast of movie
+            Iterator<MediaCreditCast> i = movieCast.iterator();
+            while (i.hasNext()) {
+                MediaCreditCast castMember = i.next();
+
+                System.out.println("  Iterating through cast member: " + castMember.getName());
+
+                // get id of cast member to search for their movie credits
+                int castMemberId = castMember.getCastId();
+                System.out.print("    (MovieCredits..." + castMemberId + "...");
+                try {
+                    PersonCreditList<CreditMovieBasic> castMemberMovieCredits = TMDb.getPersonMovieCredits(castMemberId, "en");
+                    System.out.println("completed)");
+
+                    List<CreditMovieBasic> castMemberMovieList = castMemberMovieCredits.getCast();
+
+                    //iterate through cast of movie
+                    Iterator<CreditMovieBasic> j = castMemberMovieList.iterator();
+                    while (j.hasNext()) {
+                        CreditMovieBasic castMemberMovie = j.next();
+                        //get set of actors for movie is already in our map
+                        Set<MediaCreditCast> creditMovieSet = new HashSet<MediaCreditCast>() {
+                        };
+                        if (movieToActorListMap.containsKey(castMemberMovie)) {
+                            creditMovieSet = movieToActorListMap.get(castMemberMovie);
+                        }
+                        //add cast member to set
+                        creditMovieSet.add(castMember);
+                        //update set in our map
+                        movieToActorListMap.put(castMemberMovie, creditMovieSet);
+                    }
+                } catch (MovieDbException ex) {
+                    System.out.println("...failed");
+                    System.out.println("MovieDbException Occurred, Actor not found");
+                    java.util.logging.Logger.getLogger(Grapher.class.getName()).log(Level.WARNING, null, ex);
+                }
+            }
         } catch (MovieDbException ex) {
-            LOG.warn("Failed to get Movie credits: {}", ex.getMessage());
-        }            
-        
-        List<MediaCreditCast> movieCast = movieCredits.getCast();
-        Iterator<MediaCreditCast> i = movieCast.iterator();
-        while(i.hasNext()) {
-            MediaCreditCast castMember = i.next();
-            String castMemberName = castMember.getName();
-            int castMemberId = castMember.getCastId();
-            PersonCreditList<CreditMovieBasic> castMemberMovieCredits = TMDb.getPersonMovieCredits(castMemberId, "English");
-            List<CreditMovieBasic> castMemberMovieList = castMemberMovieCredits.getCast();
-            //castMemberMovieList.get(0).getTitle;
-            
+            System.out.println("MovieDbException Occurred");
+            java.util.logging.Logger.getLogger(Grapher.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
