@@ -30,23 +30,39 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import javax.swing.JFrame;
+import javax.swing.JButton;
+import javax.swing.JTextField;
+import javax.swing.JLabel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import javax.swing.BoxLayout;
+import javax.swing.JPanel;
+import panelPackage.GraphPanel; 
 
 /**
  *
  * @author STAHLZD1
  */
-public class Grapher extends javax.swing.JFrame {
+public class Grapher extends javax.swing.JFrame implements ActionListener {
 
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
     private TheMovieDbApi TMDb = null;
     private String queryString = "The Pink Panther";
     private Map<CreditMovieBasic, Set<MediaCreditCast>> movieToActorListMap = new HashMap<CreditMovieBasic, Set<MediaCreditCast>>();
+    JButton addButton = new JButton("Add Movie");
+    JButton graphButton = new JButton("Graph!");
+    JTextField movieInput = new JTextField("Movie Title...");
+    JLabel moviesList = new JLabel();
+    GraphPanel graphPanel = new GraphPanel();
 
     /**
      * Creates new form Grapher
      */
     public Grapher() {
-        initComponents();
+        initializeComponents();
         try {
             //init connection to TheMovieDbApi
             TMDb = new TheMovieDbApi(APIKey);
@@ -161,6 +177,45 @@ public class Grapher extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void initializeComponents() {
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBounds(100, 50, 600, 500);
+        
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.setBackground(Color.WHITE);
+        
+        graphPanel.setBackground(Color.RED);
+        getContentPane().add(graphPanel, BorderLayout.CENTER);
+        
+        addButton.addActionListener(this);
+        graphButton.addActionListener(this);
+        
+        form.add(moviesList);
+        form.add(movieInput);
+        form.add(addButton);
+        form.add(graphButton);
+        getContentPane().add(form, BorderLayout.SOUTH);
+    }
+    
+    public void actionPerformed(ActionEvent e) {
+        if (addButton.equals(e.getSource())) {
+            //do stuff for the add button
+            if (!"".equals(movieInput.getText())) {
+                if ("".equals(moviesList.getText())) {
+                    moviesList.setText(movieInput.getText());
+                    movieInput.setText("");
+                } else {
+                    moviesList.setText(moviesList.getText() + ", " + movieInput.getText());
+                    movieInput.setText("");
+                }
+            }
+        } else {
+            // do stuff for the graph button
+        }
+        graphPanel.repaint();
+    }
+    
     /**
      * @param args the command line arguments
      */
