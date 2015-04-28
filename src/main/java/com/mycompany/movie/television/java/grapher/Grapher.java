@@ -38,6 +38,7 @@ import javax.swing.JTextField;
 import javax.swing.JLabel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import panelPackage.GraphPanel;
@@ -58,6 +59,8 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
     JTextField movieInput = new JTextField("Movie Title...");
     JLabel moviesList = new JLabel();
     GraphPanel graphPanel = new GraphPanel();
+    
+    JLabel initialMovie = new JLabel("Initial Movie");
 
     /**
      * Creates new form Grapher
@@ -230,6 +233,33 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             }
         } else {
             // do stuff for the graph button
+            graphPanel.removeAll();
+            initialMovie.setText("The Avengers");
+            initialMovie.setBorder(BorderFactory.createLineBorder(Color.black));
+            //setLayout(null);
+            for (Map.Entry<CreditMovieBasic, Set<MediaCreditCast>> entry : movieToActorListMap.entrySet())
+            {
+                JLabel newMovie = new JLabel("NEW_MOVIE");
+                JLabel newActor = new JLabel("NEW_ACTOR");
+
+                MediaCreditCast [] temp = entry.getValue().toArray(new MediaCreditCast[0]);
+
+                newActor.setText(temp[0].getName());
+                newMovie.setText(entry.getKey().getTitle());
+                
+                newActor.setBorder(BorderFactory.createLineBorder(Color.black));
+                newMovie.setBorder(BorderFactory.createLineBorder(Color.black));
+                
+                //newActor.setBounds(0, 0, newActor.getWidth(), newActor.getHeight());
+                //newMovie.setBounds(0, 0, newMovie.getWidth(), newMovie.getHeight());
+               
+                //newActor.setLocation(0, 0);
+                //newMovie.setLocation(0, 0);
+                
+                graphPanel.add(newMovie);
+                graphPanel.add(newActor);
+               
+            }
         }
         graphPanel.repaint();
     }
