@@ -114,17 +114,17 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
 
         //a group of JMenuItems
         menuItem = new JMenuItem("Save",
-                                 KeyEvent.VK_T);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+                                 KeyEvent.VK_S);
+        //menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        //        KeyEvent.VK_1, ActionEvent.ALT_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription(
                 "This saves a graph");
         menu.add(menuItem);
         
         menuItem = new JMenuItem("Load",
-                                 KeyEvent.VK_T);
-        menuItem.setAccelerator(KeyStroke.getKeyStroke(
-                KeyEvent.VK_1, ActionEvent.ALT_MASK));
+                                 KeyEvent.VK_L);
+        //menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        //        KeyEvent.VK_1, ActionEvent.ALT_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription(
                 "This loads a graph");
         menu.add(menuItem);
