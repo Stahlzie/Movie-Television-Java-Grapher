@@ -120,6 +120,11 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         menuItem.getAccessibleContext().setAccessibleDescription(
                 "This saves a graph");
         menu.add(menuItem);
+        menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //put stuff for saving a file here
+            }
+        });
         
         menuItem = new JMenuItem("Load",
                                  KeyEvent.VK_L);
@@ -128,6 +133,11 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         menuItem.getAccessibleContext().setAccessibleDescription(
                 "This loads a graph");
         menu.add(menuItem);
+        menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //put stuff for loading a file here
+            }
+        });
 
         this.setJMenuBar(menuBar);
         
