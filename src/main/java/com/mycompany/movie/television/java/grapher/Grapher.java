@@ -42,6 +42,11 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import panelPackage.GraphPanel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JMenuBar;
+import java.awt.event.*;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -95,6 +100,51 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void initializeComponents() {
+        //menu stuff
+        JMenuBar menuBar;
+        JMenu menu;
+        JMenuItem menuItem;
+
+        //Create the menu bar.
+        menuBar = new JMenuBar();
+
+        //Build the menu.
+        menu = new JMenu("File");
+        menu.setMnemonic(KeyEvent.VK_A);
+        menu.getAccessibleContext().setAccessibleDescription(
+                "The only menu in this program that has menu items");
+        menuBar.add(menu);
+
+        //a group of JMenuItems
+        menuItem = new JMenuItem("Save",
+                                 KeyEvent.VK_S);
+        //menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        //        KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "This saves a graph");
+        menu.add(menuItem);
+        menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //put stuff for saving a file here
+            }
+        });
+        
+        menuItem = new JMenuItem("Load",
+                                 KeyEvent.VK_L);
+        //menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        //        KeyEvent.VK_1, ActionEvent.ALT_MASK));
+        menuItem.getAccessibleContext().setAccessibleDescription(
+                "This loads a graph");
+        menu.add(menuItem);
+        menuItem.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                //put stuff for loading a file here
+            }
+        });
+
+        this.setJMenuBar(menuBar);
+        
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBounds(100, 50, 600, 500);
 
