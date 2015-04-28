@@ -5,6 +5,7 @@
  */
 package panelPackage;
 
+import com.mycompany.movie.television.java.grapher.Grapher;
 import java.awt.Graphics;
 import javax.swing.JPanel;
 
@@ -13,11 +14,15 @@ import javax.swing.JPanel;
  * @author PATTERSONSW1, GRAPH WILL BE DRAWN IN HERE
  */
 public class GraphPanel extends JPanel {
-    public GraphPanel() {
-        
+    
+    Grapher myGraph;
+    
+    public GraphPanel(Grapher gg) {
+        myGraph = gg;
     }
     
     public void paint(Graphics g) {
         super.paint(g);
+        myGraph.drawGraph(g);
     }
 }

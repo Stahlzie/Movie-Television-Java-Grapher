@@ -32,6 +32,7 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Graphics;
 import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextField;
@@ -57,21 +58,39 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
     private TheMovieDbApi TMDb = null;
     //private String queryString = "The Pink Panther";
-    private Map<CreditMovieBasic, Set<MediaCreditCast>> movieToActorListMap = new HashMap<CreditMovieBasic, Set<MediaCreditCast>>();
-    private List<String> MoviesQueried = new ArrayList<String>();
+    public Map<CreditMovieBasic, Set<MediaCreditCast>> movieToActorListMap = new HashMap<CreditMovieBasic, Set<MediaCreditCast>>();
+    public Map<MediaCreditCast, List<CreditMovieBasic>> actorToMovieListMap = new HashMap<MediaCreditCast, List<CreditMovieBasic>>();
+    private List<CreditMovieBasic> MoviesQueried = new ArrayList<CreditMovieBasic>();
     JButton addButton = new JButton("Add Movie");
     JButton graphButton = new JButton("Graph!");
     JTextField movieInput = new JTextField("Movie Title...");
     JLabel moviesList = new JLabel();
-    GraphPanel graphPanel = new GraphPanel();
-    
-    JLabel initialMovie = new JLabel("Initial Movie");
+    GraphPanel graphPanel = new GraphPanel(this);
 
     /**
      * Creates new form Grapher
      */
     public Grapher() {
         initializeComponents();
+                
+        //Initial Tests Query
+        searchMovieByString("The Avengers");
+        if ("".equals(moviesList.getText())) {
+                    moviesList.setText("The Avengers");
+                    movieInput.setText("");
+                } else {
+                    moviesList.setText(moviesList.getText() + ", " + "The Avengers");
+                    movieInput.setText("");
+                }
+        
+        searchMovieByString("Avengers: Age of Ultron");
+        if ("".equals(moviesList.getText())) {
+                    moviesList.setText("Avengers: Age of Ultron");
+                    movieInput.setText("");
+                } else {
+                    moviesList.setText(moviesList.getText() + ", " + "Avengers: Age of Ultron");
+                    movieInput.setText("");
+                }
     }
 
     /**
@@ -171,9 +190,6 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         } catch (MovieDbException ex) {
             java.util.logging.Logger.getLogger(Grapher.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        //Initial Tests Query
-        searchMovieByString("The Avengers");
     }
 
     //updates MoviesToActorListMap
@@ -194,7 +210,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             List<MediaBasic> mediaList = resultsList.getResults();
             // Create a MediaBasic to hold result
             MediaBasic mediaResult = new MediaBasic();
-            System.out.println("Media Results into List");
+            //System.out.println("Media Results into List");
 
             //find first movie in list
             Iterator<MediaBasic> mediaIterator = mediaList.iterator();
@@ -212,38 +228,42 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             }
             System.out.println("Initial Movie Media Result Found: " + mediaResult.toString());
             
-            //Add movie to string
-            MoviesQueried.add(mediaResult.toString());
+            
             
             //Attempt to get movie credita
             int mediaId = mediaResult.getId();
             MediaCreditList movieCredits = TMDb.getMovieCredits(mediaId);
-            System.out.println("Initial Movie Credits Retrieved");
+            //System.out.println("Initial Movie Credits Retrieved for: " + mediaResult.toString());
 
             //Get cast of movie
             List<MediaCreditCast> movieCast = movieCredits.getCast();
-            System.out.println("Initial Movie Cast converted to List");
+            //System.out.println("Initial Movie Cast converted to List");
 
             //Iterate through cast of movie
             Iterator<MediaCreditCast> i = movieCast.iterator();
             while (i.hasNext()) {
                 MediaCreditCast castMember = i.next();
 
-                System.out.println("  Iterating through cast member: " + castMember.getName());
+                //System.out.println("  Iterating through cast member: " + castMember.getName());
 
                 // get id of cast member to search for their movie credits
                 int castMemberId = castMember.getCastId();
-                System.out.print("    (MovieCredits..." + castMemberId + "...");
+                //System.out.print("    (MovieCredits..." + castMemberId + "...");
                 try {
                     PersonCreditList<CreditMovieBasic> castMemberMovieCredits = TMDb.getPersonMovieCredits(castMemberId, "en");
-                    System.out.println("completed)");
+                    //System.out.println("completed)");
 
                     List<CreditMovieBasic> castMemberMovieList = castMemberMovieCredits.getCast();
-
+                    actorToMovieListMap.put(castMember, castMemberMovieList);
+                    
                     //iterate through cast of movie
                     Iterator<CreditMovieBasic> j = castMemberMovieList.iterator();
                     while (j.hasNext()) {
                         CreditMovieBasic castMemberMovie = j.next();
+                        //Add original movie to list of orig searched movies
+                        if (castMemberMovie.getTitle().equals(mediaResult.toString())) {
+                            MoviesQueried.add(castMemberMovie);
+                        }
                         //get set of actors for movie is already in our map
                         Set<MediaCreditCast> creditMovieSet = new HashSet<MediaCreditCast>() {
                         };
@@ -255,9 +275,10 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                         //update set in our map
                         movieToActorListMap.put(castMemberMovie, creditMovieSet);
                     }
+                    System.out.println("MovieDbException Occurred");
                 } catch (MovieDbException ex) {
-                    System.out.println("...failed");
-                    System.out.println("MovieDbException Occurred, Actor not found");
+                    //System.out.println("...failed");
+                    //System.out.println("MovieDbException Occurred, Actor not found");
                     java.util.logging.Logger.getLogger(Grapher.class.getName()).log(Level.WARNING, null, ex);
                 }
             }
@@ -265,6 +286,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             System.out.println("MovieDbException Occurred");
             java.util.logging.Logger.getLogger(Grapher.class.getName()).log(Level.SEVERE, null, ex);
         }
+        System.out.println("Finished results for: " + queryString);
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -282,36 +304,58 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 }
             }
         } else {
+            if(MoviesQueried.size() < 2) {
+                graphPanel.add(new JLabel("Please add at least two movies"));
+                graphPanel.removeAll();
+            }
+            else {
             // do stuff for the graph button
             graphPanel.removeAll();
-            initialMovie.setText("The Avengers");
-            initialMovie.setBorder(BorderFactory.createLineBorder(Color.black));
-            //setLayout(null);
-            for (Map.Entry<CreditMovieBasic, Set<MediaCreditCast>> entry : movieToActorListMap.entrySet())
-            {
-                JLabel newMovie = new JLabel("NEW_MOVIE");
-                JLabel newActor = new JLabel("NEW_ACTOR");
-
-                MediaCreditCast [] temp = entry.getValue().toArray(new MediaCreditCast[0]);
-
-                newActor.setText(temp[0].getName());
-                newMovie.setText(entry.getKey().getTitle());
-                
-                newActor.setBorder(BorderFactory.createLineBorder(Color.black));
-                newMovie.setBorder(BorderFactory.createLineBorder(Color.black));
-                
-                //newActor.setBounds(0, 0, newActor.getWidth(), newActor.getHeight());
-                //newMovie.setBounds(0, 0, newMovie.getWidth(), newMovie.getHeight());
-               
-                //newActor.setLocation(0, 0);
-                //newMovie.setLocation(0, 0);
-                
-                graphPanel.add(newMovie);
-                graphPanel.add(newActor);
-               
+            
+//            for (Map.Entry<CreditMovieBasic, Set<MediaCreditCast>> entry : movieToActorListMap.entrySet())
+//            {
+//                CreditMovieBasic key = entry.getKey();
+//                Set<MediaCreditCast> value = entry.getValue();
+//                
+//                
+//
+//                MediaCreditCast [] temp = entry.getValue().toArray(new MediaCreditCast[0]);
+//                
+//                //newActor.setBounds(0, 0, newActor.getWidth(), newActor.getHeight());
+//                //newMovie.setBounds(0, 0, newMovie.getWidth(), newMovie.getHeight());
+//               
+//                //newActor.setLocation(0, 0);
+//                //newMovie.setLocation(0, 0);
+//                
+//                
+//               
+//            }
             }
         }
         graphPanel.repaint();
+    }
+    
+    public void drawGraph(Graphics g) {
+        Set<MediaCreditCast> commonActors = new HashSet<MediaCreditCast>();
+        for(CreditMovieBasic temp: MoviesQueried) {
+            if(commonActors.isEmpty()) {
+                commonActors = movieToActorListMap.get(temp);
+            }
+            else {
+                commonActors.retainAll(movieToActorListMap.get(temp));
+            }
+            
+            double HEIGHT = g.getClipBounds().width;
+            double WEIGHT = g.getClipBounds().height;
+            int SIZE = MoviesQueried.size();
+            int MY_DIAMETER = 100;
+            for (int i = 0; i < MoviesQueried.size(); i++) {
+                int leftx = (int)((i+1)/(SIZE + 1)*WIDTH);
+                int topy = (int)(HEIGHT * .9);
+                g.setColor(Color.BLACK);
+                g.drawRect(leftx, topy, MY_DIAMETER, MY_DIAMETER);
+            }
+        }
     }
 
     /**
