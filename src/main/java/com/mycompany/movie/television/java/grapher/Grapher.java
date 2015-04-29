@@ -65,7 +65,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
     JButton graphButton = new JButton("Graph!");
     JTextField movieInput = new JTextField("Movie Title...");
     JLabel moviesList = new JLabel();
-    GraphPanel graphPanel = new GraphPanel(this);
+    GraphPanel graphPanel = new GraphPanel();
 
     /**
      * Creates new form Grapher
