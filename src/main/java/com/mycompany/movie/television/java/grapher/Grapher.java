@@ -52,8 +52,10 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
     public Map<String, List<String>> actorToMovieListMap = new HashMap<>();
     private List<String> moviesQueried = new ArrayList<>();
     JButton addButton = new JButton("Add Movie");
+    JButton resetButton = new JButton("Reset");
     JButton graphButton = new JButton("Graph!");
     JTextField movieInput = new JTextField("Movie Title...");
+    JTextField minRelations = new JTextField("3");
     JLabel moviesList = new JLabel();
     GraphPanel graphPanel = new GraphPanel();
 
@@ -158,11 +160,12 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
 
         //graphPanel.setBackground(Color.RED);
         graphPanel.setLayout(null);
-        graphPanel.setPreferredSize(new Dimension(800, 600));
-        graphPanel.setSize(new Dimension(800,600));
+        graphPanel.setPreferredSize(new Dimension(600, 500));
+        graphPanel.setSize(new Dimension(600, 500));
         getContentPane().add(graphPanel, BorderLayout.CENTER);
 
         addButton.addActionListener(this);
+        resetButton.addActionListener(this);
         graphButton.addActionListener(this);
 
         JPanel form = new JPanel();
@@ -172,11 +175,13 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         form.add(moviesList);
         form.add(movieInput);
         form.add(addButton);
+        form.add(minRelations);
         form.add(graphButton);
+        form.add(resetButton);
         getContentPane().add(form, BorderLayout.SOUTH);
 
         pack();
-        
+
         try {
             //init connection to TheMovieDbApi
             TMDb = new TheMovieDbApi(APIKey);
@@ -237,7 +242,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             Iterator<MediaCreditCast> i = movieCast.iterator();
             while (i.hasNext()) {
                 MediaCreditCast castMember = i.next();
-                
+
                 //add this movie
                 Set<String> set = new HashSet<>();
                 if (movieToActorListMap.containsKey(mb.getTitle())) {
@@ -246,7 +251,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 //add cast member to set
                 set.add(castMember.getName());
                 movieToActorListMap.put(mb.getTitle(), set);
-                
+
                 //System.out.println("  Iterating through cast member: " + castMember.getName());
                 // get id of cast member to search for their movie credits
                 int castMemberId = castMember.getCastId();
@@ -266,7 +271,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                     Iterator<CreditMovieBasic> j = castMemberMovieList.iterator();
                     while (j.hasNext()) {
                         CreditMovieBasic castMemberMovie = j.next();
-                        
+
                         //get set of actors for movie is already in our map
                         Set<String> creditsMovieSet = new HashSet<>();
                         if (movieToActorListMap.containsKey(castMemberMovie.getTitle())) {
@@ -304,18 +309,29 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                     movieInput.setText("");
                 }
             }
+        } else if (resetButton.equals(e.getSource())) {
+            moviesList.setText("");
+            movieToActorListMap.clear();
+            actorToMovieListMap.clear();
+            moviesQueried.clear();
+            graphPanel.removeAll();
+            graphPanel.movieToActorListMap = this.movieToActorListMap;
+            graphPanel.queriedMovies = this.moviesQueried;
+            graphPanel.castSize = this.actorToMovieListMap.size();
+            graphPanel.updateLocations();
         } else {
-            if (moviesQueried.size() < 2) {
-                graphPanel.add(new JLabel("Please add at least two movies"));
-                graphPanel.removeAll();
-            } else {
+//            if (moviesQueried.size() < 2) {
+//                //graphPanel.add(new JLabel("Please add at least two movies"));
+//                graphPanel.removeAll();
+//            } else {
                 // do stuff for the graph button
                 graphPanel.removeAll();
                 graphPanel.movieToActorListMap = this.movieToActorListMap;
                 graphPanel.queriedMovies = this.moviesQueried;
                 graphPanel.castSize = this.actorToMovieListMap.size();
                 graphPanel.updateLocations();
-            }
+                graphPanel.minNumRelations = Integer.parseInt(minRelations.getText());
+            //}
         }
         graphPanel.repaint();
     }

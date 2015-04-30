@@ -34,6 +34,7 @@ public class GraphPanel extends JPanel {
     public List<String> queriedMovies = new ArrayList<>();
     public Map<String, Set<String>> movieToActorListMap = new HashMap<>();
     public int castSize = 0;
+    public int minNumRelations = 2;
 
     Rectangle rect = this.getBounds();
 
@@ -136,7 +137,7 @@ public class GraphPanel extends JPanel {
         List<String> moviesToRemove = new ArrayList<>();
         //remove movies that only have 1 cast member
         for (Map.Entry<String, Set<String>> entry : movieToActorListMap.entrySet()) {
-            if (entry.getValue().size() < 3) { // if movie only has one cast member from queried movies
+            if (entry.getValue().size() <= minNumRelations) { // if movie only has one cast member from queried movies
                 moviesToRemove.add(entry.getKey());
             }
         }
