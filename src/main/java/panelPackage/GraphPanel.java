@@ -185,7 +185,7 @@ public class GraphPanel extends JPanel {
         List<String> moviesToRemove = new ArrayList<>();
         //remove movies that only have 1 cast member
         for (Map.Entry<String, Set<String>> entry : movieToActorListMap.entrySet()) {
-            if (entry.getValue().size() <= minNumRelations) { // if movie only has one cast member from queried movies
+            if (entry.getValue().size() < minNumRelations) { // if movie only has one cast member from queried movies
                 moviesToRemove.add(entry.getKey());
             }
         }
@@ -220,7 +220,7 @@ public class GraphPanel extends JPanel {
                     queriedMoviesAdded++;
                 } else { //
                     double x = (3.0 / 4.0) * rect.width;
-                    double y = (movieLabelLocations.size() + 1.0) / (movieToActorListMap.size() - queriedMovies.size() + 1.0) * rect.height;
+                    double y = (movieLabelLocations.size() - queriedMoviesAdded + 1.0) / (movieToActorListMap.size() - queriedMovies.size() + 1.0) * rect.height;
                     JLabel label = new JLabel(movie);
                     label.setBounds((int) x, (int) y, label.getPreferredSize().width, label.getPreferredSize().height);
                     label.setOpaque(true);

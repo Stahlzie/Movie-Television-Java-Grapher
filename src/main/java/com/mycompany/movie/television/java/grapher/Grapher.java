@@ -387,24 +387,20 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             moviesQueried.clear();
             updateGraphPanel();
         } else {
-//            if (moviesQueried.size() < 2) {
-//                //graphPanel.add(new JLabel("Please add at least two movies"));
-//                graphPanel.removeAll();
-//            } else {
-            // do stuff for the graph button
             updateGraphPanel();
-            //}
         }
         graphPanel.repaint();
     }
 
     private void updateGraphPanel() {
         graphPanel.removeAll();
-        graphPanel.movieToActorListMap = this.movieToActorListMap;
-        graphPanel.queriedMovies = this.moviesQueried;
+        graphPanel.movieToActorListMap.clear();
+        graphPanel.queriedMovies.clear();
+        graphPanel.movieToActorListMap.putAll(this.movieToActorListMap);
+        graphPanel.queriedMovies.addAll(this.moviesQueried);
         graphPanel.castSize = this.actorToMovieListMap.size();
-        graphPanel.updateLocations();
         graphPanel.minNumRelations = Integer.parseInt(minRelations.getText());
+        graphPanel.updateLocations();
     }
 
     /**
