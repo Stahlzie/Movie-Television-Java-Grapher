@@ -25,6 +25,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import javax.swing.JButton;
 import javax.swing.JTextField;
@@ -155,16 +156,18 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBounds(100, 50, 600, 500);
 
-        JPanel form = new JPanel();
-        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
-        form.setBackground(Color.WHITE);
-
         //graphPanel.setBackground(Color.RED);
         graphPanel.setLayout(null);
+        graphPanel.setPreferredSize(new Dimension(800, 600));
+        graphPanel.setSize(new Dimension(800,600));
         getContentPane().add(graphPanel, BorderLayout.CENTER);
 
         addButton.addActionListener(this);
         graphButton.addActionListener(this);
+
+        JPanel form = new JPanel();
+        form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
+        form.setBackground(Color.WHITE);
 
         form.add(moviesList);
         form.add(movieInput);
@@ -172,6 +175,8 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         form.add(graphButton);
         getContentPane().add(form, BorderLayout.SOUTH);
 
+        pack();
+        
         try {
             //init connection to TheMovieDbApi
             TMDb = new TheMovieDbApi(APIKey);

@@ -12,6 +12,8 @@ import java.awt.Graphics;
 import javax.swing.JPanel;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,10 +37,61 @@ public class GraphPanel extends JPanel {
 
     Rectangle rect = this.getBounds();
 
+    JLabel selectedLabel = null;
+
+    JLabel directionsLabel = new JLabel("Please Add At Least Two Movies");
+
     //Grapher myGraph;
     //data structure which holds info to be graphed goes here
     public GraphPanel() { //pass in the data structure to this constructor
-        //set the member data structure to be equal to the one that was passed in. 
+        //set the member data structure to be equal to the one that was passed in.
+        //addMouseMotionListener(myMouseAdapter);
+        directionsLabel.setBounds(0, 0, directionsLabel.getPreferredSize().width, directionsLabel.getPreferredSize().height);
+        directionsLabel.setOpaque(true);
+        directionsLabel.setBackground(Color.white);
+//        MyMouseAdapter myMouseAdapter = new MyMouseAdapter();
+//        addMouseListener(myMouseAdapter);
+//        addMouseMotionListener(myMouseAdapter);
+    }
+
+    private class MyMouseAdapter extends MouseAdapter {
+
+        int x_pressed = 0;
+        int y_pressed = 0;
+
+        public void mousePressed(MouseEvent e) {
+            //catching the current values for x,y coordinates on screen
+            if (e.getComponent() instanceof JLabel) {
+                selectedLabel = (JLabel) e.getComponent();
+                x_pressed = e.getX();
+                y_pressed = e.getY();
+            } else if (e.getComponent() instanceof JPanel) {
+                selectedLabel = null;
+                x_pressed = e.getX();
+                y_pressed = e.getY();
+            } else {
+                selectedLabel = null;
+            }
+            repaint();
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            //and when the Jlabel is dragged
+            if (e.getComponent() instanceof JLabel) {
+                selectedLabel = (JLabel) e.getComponent();
+                int x = selectedLabel.getX() + e.getX() - x_pressed;
+                int y = selectedLabel.getY() + e.getY() - y_pressed;
+                selectedLabel.setLocation(x, y);
+            } else if (e.getComponent() instanceof JPanel) {
+                selectedLabel = null;
+                int x = e.getX() - x_pressed;
+                int y = e.getY() - y_pressed;
+                e.getComponent().setLocation(x, y);
+            } else {
+                selectedLabel = null;
+            }
+            repaint();
+        }
     }
 
     public void paintComponent(Graphics g) {
@@ -48,7 +101,8 @@ public class GraphPanel extends JPanel {
         g.setColor(Color.BLACK);
 
         if (queriedMovies.size() < 2) {
-            g.drawString("Please Add At Least Two Movies", 15, 15); //note 15, 15 means the left bottom corner of the label is at 15, 15
+            directionsLabel.setLocation(center.x - directionsLabel.getWidth() / 2, center.y - directionsLabel.getHeight() / 2);
+            this.add(directionsLabel);
             //so heres how to draw a label. you can do a line with g.drawLine(x1, y1, x2, y2)
             //you can use rect.x, y, width, and height to help place stuff
             //also you can use center.x, center.y to help place stuff.
@@ -59,20 +113,20 @@ public class GraphPanel extends JPanel {
                 JLabel movieLabel = movieLabelLocations.get(movie);
                 HashSet<String> actorSet = (HashSet<String>) entry.getValue();
 
-                int movieLabelX = movieLabel.getX() + movieLabel.getWidth()/2;
-                int movieLabelY = movieLabel.getY() + movieLabel.getHeight()/2;
-                
+                int movieLabelX = movieLabel.getX() + movieLabel.getWidth() / 2;
+                int movieLabelY = movieLabel.getY() + movieLabel.getHeight() / 2;
+
                 for (String actor : actorSet) {
                     JLabel actorLabel = actorLabelLocations.get(actor);
                     //draw line
-                    int actorLabelX = actorLabel.getX() + actorLabel.getWidth()/2;
-                    int actorLabelY = actorLabel.getY() + actorLabel.getHeight()/2;
+                    int actorLabelX = actorLabel.getX() + actorLabel.getWidth() / 2;
+                    int actorLabelY = actorLabel.getY() + actorLabel.getHeight() / 2;
+                    if (selectedLabel != null && (selectedLabel.equals(movieLabel) || selectedLabel.equals(actorLabel))) {
+                        g.setColor(Color.RED);
+                    }
                     g.drawLine(actorLabelX, actorLabelY, movieLabelX, movieLabelY);
-                    //draw actor JLabel
-                    //g.drawString(actor, actorPoint.getX(), actorPoint.getY());
+                    g.setColor(Color.BLACK);
                 }
-                //draw movie JLabel
-                //g.drawString(movie, moviePoint.getX(), moviePoint.getY());
             }
         }
     }
@@ -106,9 +160,12 @@ public class GraphPanel extends JPanel {
                     double x = (1.0 / 4.0) * rect.width;
                     double y = (queriedMoviesAdded + 1.0) / (queriedMovies.size() + 1.0) * rect.height;
                     JLabel label = new JLabel(movie);
-                    label.setBounds((int)x,(int)y,label.getPreferredSize().width,label.getPreferredSize().height);
+                    label.setBounds((int) x, (int) y, label.getPreferredSize().width, label.getPreferredSize().height);
                     label.setOpaque(true);
                     label.setBackground(Color.white);
+                    MyMouseAdapter myMouseAdapter = new MyMouseAdapter();
+                    label.addMouseListener(myMouseAdapter);
+                    label.addMouseMotionListener(myMouseAdapter);
                     movieLabelLocations.put(movie, label);
                     this.add(label);
                     queriedMoviesAdded++;
@@ -116,9 +173,12 @@ public class GraphPanel extends JPanel {
                     double x = (3.0 / 4.0) * rect.width;
                     double y = (movieLabelLocations.size() + 1.0) / (movieToActorListMap.size() - queriedMovies.size() + 1.0) * rect.height;
                     JLabel label = new JLabel(movie);
-                    label.setBounds((int)x,(int)y,label.getPreferredSize().width,label.getPreferredSize().height);
+                    label.setBounds((int) x, (int) y, label.getPreferredSize().width, label.getPreferredSize().height);
                     label.setOpaque(true);
                     label.setBackground(Color.white);
+                    MyMouseAdapter myMouseAdapter = new MyMouseAdapter();
+                    label.addMouseListener(myMouseAdapter);
+                    label.addMouseMotionListener(myMouseAdapter);
                     movieLabelLocations.put(movie, label);
                     this.add(label);
                 }
@@ -129,11 +189,14 @@ public class GraphPanel extends JPanel {
                 if (!actorLabelLocations.containsKey(actor)) {
                     double x = (1.0 / 2.0) * rect.width;
                     double y = (actorLabelLocations.size() + 1.0) / (castSize + 1.0) * rect.height;
-                    Point myPoint = new Point((int)x,(int)y);
+                    Point myPoint = new Point((int) x, (int) y);
                     JLabel label = new JLabel(actor);
-                    label.setBounds((int)x,(int)y,label.getPreferredSize().width,label.getPreferredSize().height);
+                    label.setBounds((int) x, (int) y, label.getPreferredSize().width, label.getPreferredSize().height);
                     label.setOpaque(true);
                     label.setBackground(Color.white);
+                    MyMouseAdapter myMouseAdapter = new MyMouseAdapter();
+                    label.addMouseListener(myMouseAdapter);
+                    label.addMouseMotionListener(myMouseAdapter);
                     actorLabelLocations.put(actor, label);
                     this.add(label);
                 }
