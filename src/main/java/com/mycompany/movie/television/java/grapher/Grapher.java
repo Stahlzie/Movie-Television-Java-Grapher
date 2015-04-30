@@ -73,24 +73,24 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
     public Grapher() {
         initializeComponents();
 
-        //Initial Tests Query
-        searchMovieByString("The Avengers");
-        if ("".equals(moviesList.getText())) {
-            moviesList.setText("The Avengers");
-            movieInput.setText("");
-        } else {
-            moviesList.setText(moviesList.getText() + ", " + "The Avengers");
-            movieInput.setText("");
-        }
-
-        searchMovieByString("Avengers: Age of Ultron");
-        if ("".equals(moviesList.getText())) {
-            moviesList.setText("Avengers: Age of Ultron");
-            movieInput.setText("");
-        } else {
-            moviesList.setText(moviesList.getText() + ", " + "Avengers: Age of Ultron");
-            movieInput.setText("");
-        }
+//        //Initial Tests Query
+//        searchMovieByString("The Avengers");
+//        if ("".equals(moviesList.getText())) {
+//            moviesList.setText("The Avengers");
+//            movieInput.setText("");
+//        } else {
+//            moviesList.setText(moviesList.getText() + ", " + "The Avengers");
+//            movieInput.setText("");
+//        }
+//
+//        searchMovieByString("Avengers: Age of Ultron");
+//        if ("".equals(moviesList.getText())) {
+//            moviesList.setText("Avengers: Age of Ultron");
+//            movieInput.setText("");
+//        } else {
+//            moviesList.setText(moviesList.getText() + ", " + "Avengers: Age of Ultron");
+//            movieInput.setText("");
+//        }
     }
 
     /**
