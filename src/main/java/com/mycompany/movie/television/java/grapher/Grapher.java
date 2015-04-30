@@ -39,12 +39,21 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
 import java.awt.event.*;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import javax.swing.JOptionPane;
+
+import java.io.Serializable;
 
 /**
  *
  * @author STAHLZD1
  */
-public class Grapher extends javax.swing.JFrame implements ActionListener {
+public class Grapher extends javax.swing.JFrame implements ActionListener, Serializable {
 
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
     private TheMovieDbApi TMDb = null;
@@ -135,6 +144,24 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //put stuff for saving a file here
+                try {
+                    ObjectOutputStream ooStream = 
+                            new ObjectOutputStream(
+                            new BufferedOutputStream(
+                            new FileOutputStream("save.movie")));
+//                    graphPanel.removeAll();
+//                    graphPanel.movieToActorListMap = this.movieToActorListMap;
+//                    graphPanel.queriedMovies = this.moviesQueried;
+//                    graphPanel.castSize = this.actorToMovieListMap.size();
+//                    graphPanel.updateLocations();
+                    ooStream.writeObject(movieToActorListMap);
+                    ooStream.writeObject(moviesQueried);
+                    ooStream.flush();
+                    ooStream.close();
+                    
+                } catch(Exception exc) {
+                    exc.printStackTrace();
+                }
             }
         });
 
@@ -148,6 +175,23 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //put stuff for loading a file here
+                try {
+                    ObjectInputStream oiStream = 
+                            new ObjectInputStream(
+                            new BufferedInputStream(
+                            new FileInputStream("save.movie")));
+                    movieToActorListMap = (Map<String, Set<String>>)oiStream.readObject();
+                    moviesQueried = (List<String>)oiStream.readObject();
+                    graphPanel.removeAll();
+                    graphPanel.movieToActorListMap = movieToActorListMap;
+                    graphPanel.queriedMovies = moviesQueried;
+                    graphPanel.castSize = actorToMovieListMap.size();
+                    graphPanel.updateLocations();
+                    graphPanel.repaint();
+                } catch(Exception exc) {
+                    JOptionPane.showMessageDialog(graphPanel, "couldnt load the file");
+                    exc.printStackTrace();
+                }
             }
         });
 
