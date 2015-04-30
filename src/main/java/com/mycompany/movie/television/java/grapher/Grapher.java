@@ -46,14 +46,13 @@ import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import javax.swing.JOptionPane;
-
-import java.io.Serializable;
+import java.awt.FileDialog;
 
 /**
  *
  * @author STAHLZD1
  */
-public class Grapher extends javax.swing.JFrame implements ActionListener, Serializable {
+public class Grapher extends javax.swing.JFrame implements ActionListener {
 
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
     private TheMovieDbApi TMDb = null;
@@ -144,23 +143,18 @@ public class Grapher extends javax.swing.JFrame implements ActionListener, Seria
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //put stuff for saving a file here
-                try {
-                    ObjectOutputStream ooStream = 
-                            new ObjectOutputStream(
-                            new BufferedOutputStream(
-                            new FileOutputStream("save.movie")));
-//                    graphPanel.removeAll();
-//                    graphPanel.movieToActorListMap = this.movieToActorListMap;
-//                    graphPanel.queriedMovies = this.moviesQueried;
-//                    graphPanel.castSize = this.actorToMovieListMap.size();
-//                    graphPanel.updateLocations();
-                    ooStream.writeObject(movieToActorListMap);
-                    ooStream.writeObject(moviesQueried);
-                    ooStream.flush();
-                    ooStream.close();
-                    
-                } catch(Exception exc) {
-                    exc.printStackTrace();
+                FileDialog sfd = new FileDialog(Grapher.this, "Save Graph", FileDialog.SAVE);
+                String filename = "untitled.movie";
+                sfd.setFile(filename);
+                sfd.setVisible(true);
+                if (sfd.getDirectory() != null && sfd.getFile() != null && sfd.getFile().length() > 0) {
+                    filename = sfd.getDirectory() + sfd.getFile();
+                    if (!filename.substring(filename.length()-6).equals(".movie")) {
+                        filename += ".movie";
+                    }
+                    if (saveGraph(filename)) {
+                        setTitle(filename);
+                    }
                 }
             }
         });
@@ -175,22 +169,20 @@ public class Grapher extends javax.swing.JFrame implements ActionListener, Seria
         menuItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 //put stuff for loading a file here
-                try {
-                    ObjectInputStream oiStream = 
-                            new ObjectInputStream(
-                            new BufferedInputStream(
-                            new FileInputStream("save.movie")));
-                    movieToActorListMap = (Map<String, Set<String>>)oiStream.readObject();
-                    moviesQueried = (List<String>)oiStream.readObject();
-                    graphPanel.removeAll();
-                    graphPanel.movieToActorListMap = movieToActorListMap;
-                    graphPanel.queriedMovies = moviesQueried;
-                    graphPanel.castSize = actorToMovieListMap.size();
-                    graphPanel.updateLocations();
-                    graphPanel.repaint();
-                } catch(Exception exc) {
-                    JOptionPane.showMessageDialog(graphPanel, "couldnt load the file");
-                    exc.printStackTrace();
+                FileDialog lfd = new FileDialog(Grapher.this, "Load Graph", FileDialog.LOAD);
+                lfd.setFile("*.movie");
+                lfd.setVisible(true);
+                if (lfd.getDirectory() != null && lfd.getFile() != null && lfd.getFile().length() > 0) {
+                    String filename = lfd.getDirectory()+lfd.getFile();
+                    if (loadGraph(filename)) {
+                        setTitle(filename);
+                        graphPanel.removeAll();
+                        graphPanel.movieToActorListMap = movieToActorListMap;
+                        graphPanel.queriedMovies = moviesQueried;
+                        graphPanel.castSize = actorToMovieListMap.size();
+                        graphPanel.updateLocations();
+                        graphPanel.repaint();
+                    }
                 }
             }
         });
@@ -332,6 +324,46 @@ public class Grapher extends javax.swing.JFrame implements ActionListener, Seria
             java.util.logging.Logger.getLogger(Grapher.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.out.println("Finished results for: " + queryString);
+    }
+    
+    public boolean loadGraph(String filename) {
+        try {
+            ObjectInputStream oiStream = 
+                    new ObjectInputStream(
+                    new BufferedInputStream(
+                    new FileInputStream(filename)));
+            movieToActorListMap = (Map<String, Set<String>>)oiStream.readObject();
+            moviesQueried = (List<String>)oiStream.readObject();
+            String moviesListString = "";
+            for (String movie : moviesQueried) {
+                moviesListString += movie + ", ";
+            }
+            moviesListString = moviesListString.substring(0, moviesListString.length()-2);
+            moviesList.setText(moviesListString);
+            return true;
+        } catch(Exception exc) {
+            JOptionPane.showMessageDialog(this, "couldnt load the file");
+            exc.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean saveGraph(String filename) {
+        try {
+            ObjectOutputStream ooStream = 
+                    new ObjectOutputStream(
+                    new BufferedOutputStream(
+                    new FileOutputStream(filename)));
+            ooStream.writeObject(movieToActorListMap);
+            ooStream.writeObject(moviesQueried);
+            ooStream.flush();
+            ooStream.close();
+            return true;
+        } catch(Exception exc) {
+            exc.printStackTrace();
+            JOptionPane.showMessageDialog(this, "couldnt save the file");
+            return false;
+        }
     }
 
     public void actionPerformed(ActionEvent e) {

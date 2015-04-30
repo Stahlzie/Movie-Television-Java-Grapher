@@ -22,13 +22,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.swing.JLabel;
-import java.io.Serializable;
 
 /**
  *
  * @author PATTERSONSW1, GRAPH WILL BE DRAWN IN HERE
  */
-public class GraphPanel extends JPanel implements Serializable {
+public class GraphPanel extends JPanel {
 
     Map<String, JLabel> movieLabelLocations = new HashMap<>();
     Map<String, JLabel> actorLabelLocations = new HashMap<>();
