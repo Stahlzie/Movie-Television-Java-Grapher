@@ -8,15 +8,12 @@ package com.mycompany.movie.television.java.grapher;
 import com.omertron.themoviedbapi.MovieDbException;
 import com.omertron.themoviedbapi.TheMovieDbApi;
 import com.omertron.themoviedbapi.enumeration.MediaType;
-import com.omertron.themoviedbapi.enumeration.SearchType;
 import com.omertron.themoviedbapi.model.credits.CreditMovieBasic;
 import com.omertron.themoviedbapi.model.credits.MediaCreditCast;
-import com.omertron.themoviedbapi.model.discover.Discover;
 import com.omertron.themoviedbapi.model.media.MediaBasic;
 import com.omertron.themoviedbapi.model.media.MediaCreditList;
 import com.omertron.themoviedbapi.model.movie.MovieBasic;
 import com.omertron.themoviedbapi.model.person.PersonCreditList;
-import com.omertron.themoviedbapi.model.person.PersonInfo;
 import com.omertron.themoviedbapi.results.ResultList;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,20 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
-import javax.swing.JFrame;
 import javax.swing.JButton;
 import javax.swing.JTextField;
 import javax.swing.JLabel;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import panelPackage.GraphPanel;
@@ -47,7 +38,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JMenuBar;
 import java.awt.event.*;
-import javax.swing.KeyStroke;
 
 /**
  *
@@ -57,10 +47,9 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
 
     public static final String APIKey = "4478254429838ff2f8bef88ec1097909";
     private TheMovieDbApi TMDb = null;
-    //private String queryString = "The Pink Panther";
-    public Map<CreditMovieBasic, Set<MediaCreditCast>> movieToActorListMap = new HashMap<CreditMovieBasic, Set<MediaCreditCast>>();
-    public Map<MediaCreditCast, List<CreditMovieBasic>> actorToMovieListMap = new HashMap<MediaCreditCast, List<CreditMovieBasic>>();
-    private List<CreditMovieBasic> MoviesQueried = new ArrayList<CreditMovieBasic>();
+    public Map<String, Set<String>> movieToActorListMap = new HashMap<>();
+    public Map<String, List<String>> actorToMovieListMap = new HashMap<>();
+    private List<String> moviesQueried = new ArrayList<>();
     JButton addButton = new JButton("Add Movie");
     JButton graphButton = new JButton("Graph!");
     JTextField movieInput = new JTextField("Movie Title...");
@@ -72,25 +61,25 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
      */
     public Grapher() {
         initializeComponents();
-                
+
         //Initial Tests Query
         searchMovieByString("The Avengers");
         if ("".equals(moviesList.getText())) {
-                    moviesList.setText("The Avengers");
-                    movieInput.setText("");
-                } else {
-                    moviesList.setText(moviesList.getText() + ", " + "The Avengers");
-                    movieInput.setText("");
-                }
-        
+            moviesList.setText("The Avengers");
+            movieInput.setText("");
+        } else {
+            moviesList.setText(moviesList.getText() + ", " + "The Avengers");
+            movieInput.setText("");
+        }
+
         searchMovieByString("Avengers: Age of Ultron");
         if ("".equals(moviesList.getText())) {
-                    moviesList.setText("Avengers: Age of Ultron");
-                    movieInput.setText("");
-                } else {
-                    moviesList.setText(moviesList.getText() + ", " + "Avengers: Age of Ultron");
-                    movieInput.setText("");
-                }
+            moviesList.setText("Avengers: Age of Ultron");
+            movieInput.setText("");
+        } else {
+            moviesList.setText(moviesList.getText() + ", " + "Avengers: Age of Ultron");
+            movieInput.setText("");
+        }
     }
 
     /**
@@ -136,7 +125,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
 
         //a group of JMenuItems
         menuItem = new JMenuItem("Save",
-                                 KeyEvent.VK_S);
+                KeyEvent.VK_S);
         //menuItem.setAccelerator(KeyStroke.getKeyStroke(
         //        KeyEvent.VK_1, ActionEvent.ALT_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription(
@@ -147,9 +136,9 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 //put stuff for saving a file here
             }
         });
-        
+
         menuItem = new JMenuItem("Load",
-                                 KeyEvent.VK_L);
+                KeyEvent.VK_L);
         //menuItem.setAccelerator(KeyStroke.getKeyStroke(
         //        KeyEvent.VK_1, ActionEvent.ALT_MASK));
         menuItem.getAccessibleContext().setAccessibleDescription(
@@ -162,7 +151,6 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         });
 
         this.setJMenuBar(menuBar);
-        
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBounds(100, 50, 600, 500);
@@ -171,7 +159,8 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         form.setLayout(new BoxLayout(form, BoxLayout.Y_AXIS));
         form.setBackground(Color.WHITE);
 
-        graphPanel.setBackground(Color.RED);
+        //graphPanel.setBackground(Color.RED);
+        graphPanel.setLayout(null);
         getContentPane().add(graphPanel, BorderLayout.CENTER);
 
         addButton.addActionListener(this);
@@ -182,7 +171,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         form.add(addButton);
         form.add(graphButton);
         getContentPane().add(form, BorderLayout.SOUTH);
-        
+
         try {
             //init connection to TheMovieDbApi
             TMDb = new TheMovieDbApi(APIKey);
@@ -227,9 +216,9 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 return;
             }
             System.out.println("Initial Movie Media Result Found: " + mediaResult.toString());
-            
-            
-            
+
+            MovieBasic mb = (MovieBasic) mediaResult;
+            moviesQueried.add(mb.getTitle());
             //Attempt to get movie credita
             int mediaId = mediaResult.getId();
             MediaCreditList movieCredits = TMDb.getMovieCredits(mediaId);
@@ -243,9 +232,17 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             Iterator<MediaCreditCast> i = movieCast.iterator();
             while (i.hasNext()) {
                 MediaCreditCast castMember = i.next();
-
+                
+                //add this movie
+                Set<String> set = new HashSet<>();
+                if (movieToActorListMap.containsKey(mb.getTitle())) {
+                    set = movieToActorListMap.get(mb.getTitle());
+                }
+                //add cast member to set
+                set.add(castMember.getName());
+                movieToActorListMap.put(mb.getTitle(), set);
+                
                 //System.out.println("  Iterating through cast member: " + castMember.getName());
-
                 // get id of cast member to search for their movie credits
                 int castMemberId = castMember.getCastId();
                 //System.out.print("    (MovieCredits..." + castMemberId + "...");
@@ -254,28 +251,27 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                     //System.out.println("completed)");
 
                     List<CreditMovieBasic> castMemberMovieList = castMemberMovieCredits.getCast();
-                    actorToMovieListMap.put(castMember, castMemberMovieList);
-                    
+                    List<String> castMemberMovieTitleList = new ArrayList<>();
+                    for (CreditMovieBasic movie : castMemberMovieList) {
+                        castMemberMovieTitleList.add(movie.getTitle());
+                    }
+                    actorToMovieListMap.put(castMember.getName(), castMemberMovieTitleList);
+
                     //iterate through cast of movie
                     Iterator<CreditMovieBasic> j = castMemberMovieList.iterator();
                     while (j.hasNext()) {
                         CreditMovieBasic castMemberMovie = j.next();
-                        //Add original movie to list of orig searched movies
-                        if (castMemberMovie.getTitle().equals(mediaResult.toString())) {
-                            MoviesQueried.add(castMemberMovie);
-                        }
+                        
                         //get set of actors for movie is already in our map
-                        Set<MediaCreditCast> creditMovieSet = new HashSet<MediaCreditCast>() {
-                        };
-                        if (movieToActorListMap.containsKey(castMemberMovie)) {
-                            creditMovieSet = movieToActorListMap.get(castMemberMovie);
+                        Set<String> creditsMovieSet = new HashSet<>();
+                        if (movieToActorListMap.containsKey(castMemberMovie.getTitle())) {
+                            creditsMovieSet = movieToActorListMap.get(castMemberMovie.getTitle());
                         }
                         //add cast member to set
-                        creditMovieSet.add(castMember);
+                        creditsMovieSet.add(castMember.getName());
                         //update set in our map
-                        movieToActorListMap.put(castMemberMovie, creditMovieSet);
+                        movieToActorListMap.put(castMemberMovie.getTitle(), creditsMovieSet);
                     }
-                    System.out.println("MovieDbException Occurred");
                 } catch (MovieDbException ex) {
                     //System.out.println("...failed");
                     //System.out.println("MovieDbException Occurred, Actor not found");
@@ -294,7 +290,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             //do stuff for the add button
             if (!"".equals(movieInput.getText())) {
                 searchMovieByString(movieInput.getText());
-                
+
                 if ("".equals(moviesList.getText())) {
                     moviesList.setText(movieInput.getText());
                     movieInput.setText("");
@@ -304,58 +300,19 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 }
             }
         } else {
-            if(MoviesQueried.size() < 2) {
+            if (moviesQueried.size() < 2) {
                 graphPanel.add(new JLabel("Please add at least two movies"));
                 graphPanel.removeAll();
-            }
-            else {
-            // do stuff for the graph button
-            graphPanel.removeAll();
-            
-//            for (Map.Entry<CreditMovieBasic, Set<MediaCreditCast>> entry : movieToActorListMap.entrySet())
-//            {
-//                CreditMovieBasic key = entry.getKey();
-//                Set<MediaCreditCast> value = entry.getValue();
-//                
-//                
-//
-//                MediaCreditCast [] temp = entry.getValue().toArray(new MediaCreditCast[0]);
-//                
-//                //newActor.setBounds(0, 0, newActor.getWidth(), newActor.getHeight());
-//                //newMovie.setBounds(0, 0, newMovie.getWidth(), newMovie.getHeight());
-//               
-//                //newActor.setLocation(0, 0);
-//                //newMovie.setLocation(0, 0);
-//                
-//                
-//               
-//            }
+            } else {
+                // do stuff for the graph button
+                graphPanel.removeAll();
+                graphPanel.movieToActorListMap = this.movieToActorListMap;
+                graphPanel.queriedMovies = this.moviesQueried;
+                graphPanel.castSize = this.actorToMovieListMap.size();
+                graphPanel.updateLocations();
             }
         }
         graphPanel.repaint();
-    }
-    
-    public void drawGraph(Graphics g) {
-        Set<MediaCreditCast> commonActors = new HashSet<MediaCreditCast>();
-        for(CreditMovieBasic temp: MoviesQueried) {
-            if(commonActors.isEmpty()) {
-                commonActors = movieToActorListMap.get(temp);
-            }
-            else {
-                commonActors.retainAll(movieToActorListMap.get(temp));
-            }
-            
-            double HEIGHT = g.getClipBounds().width;
-            double WEIGHT = g.getClipBounds().height;
-            int SIZE = MoviesQueried.size();
-            int MY_DIAMETER = 100;
-            for (int i = 0; i < MoviesQueried.size(); i++) {
-                int leftx = (int)((i+1)/(SIZE + 1)*WIDTH);
-                int topy = (int)(HEIGHT * .9);
-                g.setColor(Color.BLACK);
-                g.drawRect(leftx, topy, MY_DIAMETER, MY_DIAMETER);
-            }
-        }
     }
 
     /**
