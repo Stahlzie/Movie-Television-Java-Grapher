@@ -151,7 +151,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 sfd.setVisible(true);
                 if (sfd.getDirectory() != null && sfd.getFile() != null && sfd.getFile().length() > 0) {
                     filename = sfd.getDirectory() + sfd.getFile();
-                    if (!filename.substring(filename.length()-6).equals(".movie")) {
+                    if (!filename.substring(filename.length() - 6).equals(".movie")) {
                         filename += ".movie";
                     }
                     if (saveGraph(filename)) {
@@ -175,15 +175,10 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                 lfd.setFile("*.movie");
                 lfd.setVisible(true);
                 if (lfd.getDirectory() != null && lfd.getFile() != null && lfd.getFile().length() > 0) {
-                    String filename = lfd.getDirectory()+lfd.getFile();
+                    String filename = lfd.getDirectory() + lfd.getFile();
                     if (loadGraph(filename)) {
                         setTitle(filename);
-                        graphPanel.removeAll();
-                        graphPanel.movieToActorListMap = movieToActorListMap;
-                        graphPanel.queriedMovies = moviesQueried;
-                        graphPanel.castSize = actorToMovieListMap.size();
-                        graphPanel.updateLocations();
-                        graphPanel.repaint();
+                        updateGraphPanel();
                     }
                 }
             }
@@ -330,41 +325,41 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
         }
         System.out.println("Finished results for: " + queryString);
     }
-    
+
     public boolean loadGraph(String filename) {
         try {
-            ObjectInputStream oiStream = 
-                    new ObjectInputStream(
-                    new BufferedInputStream(
-                    new FileInputStream(filename)));
-            movieToActorListMap = (Map<String, Set<String>>)oiStream.readObject();
-            moviesQueried = (List<String>)oiStream.readObject();
+            ObjectInputStream oiStream
+                    = new ObjectInputStream(
+                            new BufferedInputStream(
+                                    new FileInputStream(filename)));
+            movieToActorListMap = (Map<String, Set<String>>) oiStream.readObject();
+            moviesQueried = (List<String>) oiStream.readObject();
             String moviesListString = "";
             for (String movie : moviesQueried) {
                 moviesListString += movie + ", ";
             }
-            moviesListString = moviesListString.substring(0, moviesListString.length()-2);
+            moviesListString = moviesListString.substring(0, moviesListString.length() - 2);
             moviesList.setText(moviesListString);
             return true;
-        } catch(Exception exc) {
+        } catch (Exception exc) {
             JOptionPane.showMessageDialog(this, "couldnt load the file");
             exc.printStackTrace();
             return false;
         }
     }
-    
+
     public boolean saveGraph(String filename) {
         try {
-            ObjectOutputStream ooStream = 
-                    new ObjectOutputStream(
-                    new BufferedOutputStream(
-                    new FileOutputStream(filename)));
+            ObjectOutputStream ooStream
+                    = new ObjectOutputStream(
+                            new BufferedOutputStream(
+                                    new FileOutputStream(filename)));
             ooStream.writeObject(movieToActorListMap);
             ooStream.writeObject(moviesQueried);
             ooStream.flush();
             ooStream.close();
             return true;
-        } catch(Exception exc) {
+        } catch (Exception exc) {
             exc.printStackTrace();
             JOptionPane.showMessageDialog(this, "couldnt save the file");
             return false;
@@ -390,26 +385,26 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
             movieToActorListMap.clear();
             actorToMovieListMap.clear();
             moviesQueried.clear();
-            graphPanel.removeAll();
-            graphPanel.movieToActorListMap = this.movieToActorListMap;
-            graphPanel.queriedMovies = this.moviesQueried;
-            graphPanel.castSize = this.actorToMovieListMap.size();
-            graphPanel.updateLocations();
+            updateGraphPanel();
         } else {
 //            if (moviesQueried.size() < 2) {
 //                //graphPanel.add(new JLabel("Please add at least two movies"));
 //                graphPanel.removeAll();
 //            } else {
-                // do stuff for the graph button
-                graphPanel.removeAll();
-                graphPanel.movieToActorListMap = this.movieToActorListMap;
-                graphPanel.queriedMovies = this.moviesQueried;
-                graphPanel.castSize = this.actorToMovieListMap.size();
-                graphPanel.updateLocations();
-                graphPanel.minNumRelations = Integer.parseInt(minRelations.getText());
+            // do stuff for the graph button
+            updateGraphPanel();
             //}
         }
         graphPanel.repaint();
+    }
+
+    private void updateGraphPanel() {
+        graphPanel.removeAll();
+        graphPanel.movieToActorListMap = this.movieToActorListMap;
+        graphPanel.queriedMovies = this.moviesQueried;
+        graphPanel.castSize = this.actorToMovieListMap.size();
+        graphPanel.updateLocations();
+        graphPanel.minNumRelations = Integer.parseInt(minRelations.getText());
     }
 
     /**

@@ -35,7 +35,11 @@ public class GraphPanel extends JPanel {
     public Map<String, Set<String>> movieToActorListMap = new HashMap<>();
     public int castSize = 0;
     public int minNumRelations = 2;
-
+    public int draggedOffsetX = 0;
+    public int draggedOffsetY = 0;
+    public int oldDraggedOffsetX = 0;
+    public int oldDraggedOffsetY = 0;
+    
     Rectangle rect = this.getBounds();
 
     JLabel selectedLabel = null;
@@ -50,9 +54,9 @@ public class GraphPanel extends JPanel {
         directionsLabel.setBounds(0, 0, directionsLabel.getPreferredSize().width, directionsLabel.getPreferredSize().height);
         directionsLabel.setOpaque(true);
         directionsLabel.setBackground(Color.white);
-//        MyMouseAdapter myMouseAdapter = new MyMouseAdapter();
-//        addMouseListener(myMouseAdapter);
-//        addMouseMotionListener(myMouseAdapter);
+        MyMouseAdapterJPanel myMouseAdapterJPanel = new MyMouseAdapterJPanel();
+        addMouseListener(myMouseAdapterJPanel);
+        addMouseMotionListener(myMouseAdapterJPanel);
     }
 
     private class MyMouseAdapter extends MouseAdapter {
@@ -91,6 +95,45 @@ public class GraphPanel extends JPanel {
             } else {
                 selectedLabel = null;
             }
+            repaint();
+        }
+    }
+    
+    private class MyMouseAdapterJPanel extends MouseAdapter {
+        int x_pressed = 0;
+        int y_pressed = 0;
+        
+        public void mousePressed(MouseEvent e) {
+            //catching the current values for x,y coordinates on screen
+//            if (e.getComponent() instanceof JLabel) {
+//                selectedLabel = (JLabel) e.getComponent();
+//                x_pressed = e.getX();
+//                y_pressed = e.getY();
+//            } else 
+
+            if (e.getComponent() instanceof JPanel) {
+                x_pressed = e.getX();
+                y_pressed = e.getY();
+            } 
+            repaint();
+        }
+
+        public void mouseDragged(MouseEvent e) {
+            //and when the Jlabel is dragged
+//            if (e.getComponent() instanceof JLabel) {
+//                selectedLabel = (JLabel) e.getComponent();
+//                int x = selectedLabel.getX() + e.getX() - x_pressed;
+//                int y = selectedLabel.getY() + e.getY() - y_pressed;
+//                selectedLabel.setLocation(x, y);
+//            } else 
+            if (e.getComponent() instanceof JPanel) {
+                oldDraggedOffsetX = draggedOffsetX;
+                oldDraggedOffsetY = draggedOffsetY;
+                
+                draggedOffsetX = e.getX() - x_pressed;
+                draggedOffsetY = e.getY() - y_pressed;
+                updateLabelLocations();
+            } 
             repaint();
         }
     }
@@ -134,6 +177,11 @@ public class GraphPanel extends JPanel {
 
     // call this everytime you update MoveToActorListMap
     public void updateLocations() {
+        oldDraggedOffsetX = 0;
+        oldDraggedOffsetY = 0;
+        draggedOffsetX = 0;
+        draggedOffsetY = 0;
+        
         List<String> moviesToRemove = new ArrayList<>();
         //remove movies that only have 1 cast member
         for (Map.Entry<String, Set<String>> entry : movieToActorListMap.entrySet()) {
@@ -204,5 +252,16 @@ public class GraphPanel extends JPanel {
             }
         }
         System.out.println("Finished Update");
+    }
+    
+    private void updateLabelLocations() {
+        for (Map.Entry<String, JLabel> movie : movieLabelLocations.entrySet()) {
+            JLabel label = (JLabel) movie.getValue();
+            label.setLocation(label.getX() - oldDraggedOffsetX + draggedOffsetX, label.getY() - oldDraggedOffsetY + draggedOffsetY);
+        }
+        for (Map.Entry<String, JLabel> actor : actorLabelLocations.entrySet()) {
+            JLabel label = (JLabel) actor.getValue();
+            label.setLocation(label.getX() - oldDraggedOffsetX + draggedOffsetX, label.getY() - oldDraggedOffsetY + draggedOffsetY);
+        }
     }
 }
