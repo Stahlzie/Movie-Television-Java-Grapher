@@ -333,6 +333,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                             new BufferedInputStream(
                                     new FileInputStream(filename)));
             movieToActorListMap = (Map<String, Set<String>>) oiStream.readObject();
+            actorToMovieListMap = (Map<String, List<String>>) oiStream.readObject();
             moviesQueried = (List<String>) oiStream.readObject();
             String moviesListString = "";
             for (String movie : moviesQueried) {
@@ -355,6 +356,7 @@ public class Grapher extends javax.swing.JFrame implements ActionListener {
                             new BufferedOutputStream(
                                     new FileOutputStream(filename)));
             ooStream.writeObject(movieToActorListMap);
+            ooStream.writeObject(actorToMovieListMap);
             ooStream.writeObject(moviesQueried);
             ooStream.flush();
             ooStream.close();
